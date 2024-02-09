@@ -1,0 +1,55 @@
+.table-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-filter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mat-cell,
+.mat-header-cell {
+  border-right: 1px solid #ddd;
+  padding: 8px;
+}
+
+.mat-header-cell:last-child,
+.mat-cell:last-child {
+  border-right: none;
+}
+
+mat-table {
+  width: auto;
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 45%;
+}
+
+.wrapper {
+  margin: 80px;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: start;
+  max-width: 100%;
+}
+
+.item-filter {
+  margin: 0 5px;
+  width: 9%;
+}
+
+.mat-header-cell,
+.mat-cell {
+  width: 100px;
+}
+
+.btn-reset {
+  margin-top: 10px;
+}
