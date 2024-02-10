@@ -1,38 +1,27 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { MOCK_DATA } from '../../shared/mock-data';
-
-export interface UserData {
-  _id: string,
-  isActive: boolean,
-  balance: string,
-  picture: string,
-  age: number,
-  name: {
-    first: string,
-    last: string,
-  },
-  company: string,
-  email: string,
-  address: string,
-  tags: string[],
-  favoriteFruit: string,
-}
+import { UserData } from 'src/app/models/user-data.model';
+import { ApiService } from 'src/app/services/api-service';
+import { first } from 'rxjs';
+import { MatSelect } from '@angular/material/select';
 
 @Component({
   selector: 'app-data-table',
   templateUrl: './data-table.component.html',
   styleUrls: ['./data-table.component.scss']
 })
-export class DataTableComponent implements AfterViewInit {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-  dataSource: MatTableDataSource<UserData>;
-  filterValue: string = '';
+export class DataTableComponent implements OnInit {
+  @ViewChildren(MatSelect) matSelects!: QueryList<MatSelect>;
+
+  dataSource!: MatTableDataSource<UserData>;
+  searchValue = '';
+  pageNumber = 1;
+  pageSize = 5;
+  totalItems = 5;
+  filter: { column: string, value: string }[] = [];
   displayedColumns = ['isActive', 'balance', 'picture', 'age', 'name', 'company', 'email', 'address', 'tags', 'favoriteFruit'];
   selectedColumns: string[] = this.displayedColumns.slice();
+  filterColumns = ['isActive', 'balance', 'age', 'favoriteFruit'];
   translatedColumns: { [key: string]: string } = {
     'isActive': 'Активен',
     'balance': 'Баланс',
@@ -46,28 +35,45 @@ export class DataTableComponent implements AfterViewInit {
     'favoriteFruit': 'Любимый фрукт'
   };
 
-  constructor() {
-    const users: any[] = MOCK_DATA;
-    this.dataSource = new MatTableDataSource(users);
+  dataFilter: any = {
+    'isActive': [{ name: 'активный', value: true }, { name: 'не активный', value: false }],
+    'balance': [{ name: '> 1000', value: 1000 }, { name: '> 3000', value: 3000 }],
+    'age': [{ name: '> 18', value: 18 }, { name: '> 30', value: 30 }],
+    'favoriteFruit': [{ name: 'apple', value: 'apple' }, { name: 'banana', value: 'banana' }, { name: 'strawberry', value: 'strawberry' }]
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  constructor(private apiService: ApiService) { }
+
+  ngOnInit(): void {
+    this.loadData();
   }
 
-  search(event: any): void {
-    let filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  search(): void {
+    this.loadData();
   }
 
-  getColumnOptions(column: string): string[] {
-    return Array.from(new Set(this.dataSource.data.map((item: any) => item[column])));
+  handlePage(event: any) {
+    this.pageNumber = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.loadData();
   }
 
-  applyFilter(column: string, filterValue: any): void {
-    this.dataSource.filterPredicate = (data: any) => data[column] === filterValue;
-    this.dataSource.filter = filterValue;
+  applyFilter(columnName: string, filterValue: any): void {
+    const existingFilterIndex = this.filter.findIndex(existing => existing.column === columnName);
+    if (existingFilterIndex !== -1) {
+      this.filter[existingFilterIndex].value = filterValue;
+    } else {
+      this.filter.push({ column: columnName, value: filterValue });
+    }
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.apiService.fetchData(this.searchValue, this.filter, this.pageNumber, this.pageSize)
+      .pipe(first()).subscribe((response) => {
+        this.dataSource = new MatTableDataSource(response.data);
+        this.totalItems = response.totalItems;
+      })
   }
 
   isActive(columnName: string): boolean {
@@ -91,12 +97,13 @@ export class DataTableComponent implements AfterViewInit {
     }
   }
 
-  resetTable(): void {
-    this.dataSource.filter = '';
-    this.sort.active = '';
-    this.sort.direction = '';
-    this.selectedColumns = [];
-    this.dataSource._updateChangeSubscription();
+  reset(): void {
+    this.searchValue = '';
+    this.matSelects.forEach(select => {
+      select.value = null;
+    });
+    this.filter = [];
+    this.loadData();
   }
 
   renderCell(cellData: any): string {

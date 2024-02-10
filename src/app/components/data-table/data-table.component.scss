@@ -1,6 +1,8 @@
 .table-container {
   display: flex;
   flex-direction: column;
+  height: 500px;
+  overflow: auto;
 }
 
 .form-filter {
@@ -20,34 +22,24 @@
   border-right: none;
 }
 
-mat-table {
-  width: auto;
-}
-
 .mat-form-field {
   font-size: 14px;
   width: 45%;
 }
 
 .wrapper {
-  margin: 80px;
+  padding: 30px;
 }
 
 .filter-row {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: start;
+  justify-content: space-between;
   max-width: 100%;
 }
 
-.item-filter {
+.filter-item {
   margin: 0 5px;
-  width: 9%;
-}
-
-.mat-header-cell,
-.mat-cell {
-  width: 100px;
 }
 
 .btn-reset {

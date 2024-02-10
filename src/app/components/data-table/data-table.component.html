@@ -2,7 +2,12 @@
   <div class="form-filter">
     <mat-form-field>
       <mat-label>Поиск</mat-label>
-      <input matInput (keyup)="search($event)" placeholder="Поиск" />
+      <input
+        matInput
+        [(ngModel)]="searchValue"
+        (ngModelChange)="search()"
+        placeholder="Поиск"
+      />
     </mat-form-field>
 
     <mat-form-field>
@@ -15,22 +20,22 @@
     </mat-form-field>
 
     <div class="btn-reset">
-      <button mat-raised-button color="primary" (click)="resetTable()">
+      <button mat-raised-button color="primary" (click)="reset()">
         Сбросить
       </button>
     </div>
   </div>
 
   <div class="filter-row">
-    <ng-container *ngFor="let column of selectedColumns">
-      <mat-form-field class="item-filter">
+    <ng-container *ngFor="let column of filterColumns">
+      <mat-form-field class="filter-item">
         <mat-label> {{ translatedColumns[column] }}</mat-label>
         <mat-select (selectionChange)="applyFilter(column, $event.value)">
           <mat-option
-            *ngFor="let option of getColumnOptions(column)"
-            [value]="option"
+            *ngFor="let option of dataFilter[column]"
+            [value]="option.value"
           >
-            {{ renderCell(option) }}
+            {{ option.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -66,6 +71,11 @@
       <tr mat-row *matRowDef="let row; columns: selectedColumns"></tr>
     </table>
 
-    <mat-paginator [pageSizeOptions]="[5, 10, 25, 50, 100]"></mat-paginator>
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 25, 50, 100]"
+      [pageSize]="pageSize"
+      [length]="totalItems"
+      (page)="handlePage($event)"
+    ></mat-paginator>
   </div>
 </div>
